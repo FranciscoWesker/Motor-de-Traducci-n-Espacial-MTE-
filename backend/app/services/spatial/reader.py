@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import geopandas as gpd
 import pandas as pd
-from osgeo import gdal, ogr
+# from osgeo import gdal, ogr  # No se usa actualmente, comentado para evitar dependencias
 import json
 
 

@@ -10,10 +10,11 @@ alembic==1.12.1
 geoalchemy2==0.14.2
 
 # Procesamiento espacial
-# Nota: GDAL se instala automáticamente con Nixpacks
-geopandas==0.14.1
+# Nota: GDAL, GEOS y PROJ se instalan desde el sistema (nixpacks)
+# Estas dependencias se instalan en orden específico en nixpacks.toml
 shapely==2.0.2
 pyproj==3.6.1
+geopandas==0.14.1
 rasterio==1.3.9
 fiona==1.9.5
 
@@ -21,4 +22,3 @@ fiona==1.9.5
 pydantic==2.5.0
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
-
