@@ -10,8 +10,8 @@ alembic==1.12.1
 geoalchemy2==0.14.2
 
 # Procesamiento espacial
-# Nota: GDAL, GEOS y PROJ se instalan desde el sistema (nixpacks)
-# Estas dependencias se instalan en orden específico en nixpacks.toml
+# Nota: shapely y pyproj se instalan antes en nixpacks.toml con PROJ_DIR configurado
+# Se incluyen aquí para que pip las detecte como ya instaladas
 shapely==2.0.2
 pyproj==3.6.1
 geopandas==0.14.1
