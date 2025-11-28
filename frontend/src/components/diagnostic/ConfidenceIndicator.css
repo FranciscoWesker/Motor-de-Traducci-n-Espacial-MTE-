@@ -1,0 +1,21 @@
+.confidence-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+}
+
+.confidence-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--color);
+  box-shadow: 0 0 8px var(--color);
+}
+
+.confidence-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}

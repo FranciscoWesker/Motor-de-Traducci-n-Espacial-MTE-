@@ -1,0 +1,29 @@
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Enum
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+import enum
+from app.core.database import Base
+
+class ConfiabilidadEnum(str, enum.Enum):
+    VERDE = "verde"
+    AMARILLO = "amarillo"
+    ROJO = "rojo"
+
+class SpatialAnalysis(Base):
+    __tablename__ = "spatial_analyses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    archivo_id = Column(Integer, ForeignKey("data_files.id"), nullable=False)
+    crs_detectado = Column(String(100))
+    crs_original = Column(String(100))
+    unidades_detectadas = Column(String(50))
+    origen_detectado = Column(String(100))
+    escala_estimada = Column(Float)
+    error_planimetrico = Column(Float, nullable=True)
+    error_altimetrico = Column(Float, nullable=True)
+    confiabilidad = Column(Enum(ConfiabilidadEnum), default=ConfiabilidadEnum.ROJO)
+    fecha_analisis = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    archivo = relationship("DataFile", back_populates="analisis")
+    validaciones = relationship("ValidationResult", back_populates="analisis", cascade="all, delete-orphan")
