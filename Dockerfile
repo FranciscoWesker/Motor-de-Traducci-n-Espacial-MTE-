@@ -27,7 +27,9 @@ COPY requirements.txt .
 
 # Instalar dependencias de Python
 # Las variables de entorno PROJ_DIR, PROJ_LIB y GDAL_CONFIG están configuradas arriba
+# Instalar NumPy 1.x primero (Shapely 2.0.2 y GeoPandas 0.14.1 fueron compilados con NumPy 1.x)
 RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir "numpy<2.0" && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copiar código de la aplicación

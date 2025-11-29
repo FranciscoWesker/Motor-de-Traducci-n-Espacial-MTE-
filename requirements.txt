@@ -12,6 +12,8 @@ geoalchemy2==0.14.2
 # Procesamiento espacial
 # Nota: Las dependencias del sistema (GDAL, PROJ, GEOS) se instalan en el Dockerfile
 # Las variables de entorno PROJ_DIR, PROJ_LIB y GDAL_CONFIG están configuradas en el Dockerfile
+# NumPy 1.x requerido: Shapely 2.0.2 y GeoPandas 0.14.1 fueron compilados con NumPy 1.x
+numpy<2.0
 shapely==2.0.2
 pyproj==3.6.1
 geopandas==0.14.1
