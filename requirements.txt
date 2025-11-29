@@ -10,8 +10,8 @@ alembic==1.12.1
 geoalchemy2==0.14.2
 
 # Procesamiento espacial
-# Nota: shapely y pyproj se instalan antes en nixpacks.toml con PROJ_DIR configurado
-# Se incluyen aquí para que pip las detecte como ya instaladas
+# Nota: Las dependencias del sistema (GDAL, PROJ, GEOS) se instalan en el Dockerfile
+# Las variables de entorno PROJ_DIR, PROJ_LIB y GDAL_CONFIG están configuradas en el Dockerfile
 shapely==2.0.2
 pyproj==3.6.1
 geopandas==0.14.1

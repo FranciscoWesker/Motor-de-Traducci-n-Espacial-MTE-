@@ -22,7 +22,7 @@ ENV GEOS_DIR=/usr
 
 WORKDIR /app
 
-# Copiar requirements
+# Copiar requirements primero (para cache de Docker)
 COPY requirements.txt .
 
 # Instalar dependencias de Python
@@ -30,14 +30,20 @@ COPY requirements.txt .
 RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copiar código
-COPY backend/ .
+# Copiar código de la aplicación
+COPY main.py .
+COPY backend/ ./backend/
 
 # Crear directorio para uploads
 RUN mkdir -p /app/uploads
 
 # Variables de entorno
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Exponer puerto
+EXPOSE 8000
+
+# Comando por defecto (puede ser sobrescrito por Railway)
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
