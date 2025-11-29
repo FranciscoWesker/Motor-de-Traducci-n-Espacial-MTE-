@@ -7,6 +7,8 @@ COPY frontend/package.json frontend/package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY frontend/ .
 RUN npm run build
+# Verificar que el build se completó correctamente
+RUN ls -la dist/ && test -f dist/index.html && echo "Frontend build successful"
 
 FROM python:3.11-slim
 
@@ -48,6 +50,8 @@ COPY backend/ ./backend/
 
 # Copiar frontend construido desde el stage anterior
 COPY --from=frontend-builder /frontend/dist ./frontend/dist
+# Verificar que el frontend se copió correctamente
+RUN ls -la frontend/dist/ && test -f frontend/dist/index.html && echo "Frontend copied successfully"
 
 # Crear directorio para uploads
 RUN mkdir -p /app/uploads
