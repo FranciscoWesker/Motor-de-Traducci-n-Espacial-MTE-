@@ -1,3 +1,13 @@
+FROM node:20-slim AS frontend-builder
+
+# Construir frontend
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json* ./
+# Usar npm install si no hay package-lock.json, npm ci si existe
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+COPY frontend/ .
+RUN npm run build
+
 FROM python:3.11-slim
 
 # Instalar dependencias del sistema para geoespaciales
@@ -36,12 +46,16 @@ RUN pip install --upgrade pip setuptools wheel && \
 COPY main.py .
 COPY backend/ ./backend/
 
+# Copiar frontend construido desde el stage anterior
+COPY --from=frontend-builder /frontend/dist ./frontend/dist
+
 # Crear directorio para uploads
 RUN mkdir -p /app/uploads
 
 # Variables de entorno
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
+ENV ENVIRONMENT=production
 
 # Exponer puerto
 EXPOSE 8000
