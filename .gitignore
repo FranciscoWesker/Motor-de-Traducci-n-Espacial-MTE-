@@ -81,11 +81,10 @@ htmlcov/
 scripts/
 backend/scripts/
 
-# Configuración de despliegue (mantener solo código)
+﻿# Configuración de despliegue (mantener solo código)
 railway.json
 railway.toml
 Procfile
-nixpacks.toml
 .railwayignore
 backend/railway-start.sh
 backend/runtime.txt
