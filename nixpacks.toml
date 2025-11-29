@@ -1,11 +1,10 @@
 [phases.setup]
-nixPkgs = ["python311", "gdal", "postgresql", "geos", "proj"]
+aptPkgs = ["gdal-bin", "libgdal-dev", "proj-bin", "proj-data", "libproj-dev"]
 
 [phases.install]
 cmds = [
   "pip install --upgrade pip setuptools wheel",
-  "bash -c 'export PROJ_BIN=$(find /nix/store -name proj -type f -path \"*/bin/*\" 2>/dev/null | head -1) && export PROJ_DIR=$(dirname $(dirname \"$PROJ_BIN\")) && export PROJ_LIB=\"$PROJ_DIR/lib\" && export PATH=\"$(dirname \"$PROJ_BIN\"):$PATH\" && which proj && pip install --no-cache-dir shapely==2.0.2 pyproj==3.6.1'",
-  "bash -c 'export PROJ_BIN=$(find /nix/store -name proj -type f -path \"*/bin/*\" 2>/dev/null | head -1) && export PROJ_DIR=$(dirname $(dirname \"$PROJ_BIN\")) && export PROJ_LIB=\"$PROJ_DIR/lib\" && export PATH=\"$(dirname \"$PROJ_BIN\"):$PATH\" && pip install --no-cache-dir -r requirements.txt'"
+  "PROJ_DIR=/usr pip install --no-cache-dir -r requirements.txt"
 ]
 
 [start]
