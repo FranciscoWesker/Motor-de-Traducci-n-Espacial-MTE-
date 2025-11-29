@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FileUploader from '../components/upload/FileUploader'
-import { uploadFile, diagnoseFile } from '../services/api'
+import { diagnoseFile } from '../services/api'
 import './UploadAnalysis.css'
 
 const UploadAnalysis = () => {
@@ -10,29 +10,29 @@ const UploadAnalysis = () => {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const handleFileSelect = async (file: File) => {
+  const handleUploadSuccess = async (fileId: number) => {
     setError(null)
-    setUploading(true)
+    setUploading(false)
+    setAnalyzing(true)
 
     try {
-      // Subir archivo
-      const fileResponse = await uploadFile(file)
-      
-      setUploading(false)
-      setAnalyzing(true)
-
       // Ejecutar análisis
-      const analysis = await diagnoseFile(fileResponse.id)
+      const analysis = await diagnoseFile(fileId)
       
       setAnalyzing(false)
       
       // Navegar a la página de resultados
       navigate(`/analysis/${analysis.id}`)
     } catch (err: any) {
-      setUploading(false)
       setAnalyzing(false)
-      setError(err.response?.data?.detail || err.message || 'Error al procesar el archivo')
+      setError(err.response?.data?.detail || err.message || 'Error al analizar el archivo')
     }
+  }
+
+  const handleUploadError = (errorMessage: string) => {
+    setError(errorMessage)
+    setUploading(false)
+    setAnalyzing(false)
   }
 
   return (
@@ -51,14 +51,10 @@ const UploadAnalysis = () => {
         )}
 
         {!uploading && !analyzing && (
-          <FileUploader onFileSelect={handleFileSelect} />
-        )}
-
-        {uploading && (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Subiendo archivo...</p>
-          </div>
+          <FileUploader 
+            onUploadSuccess={handleUploadSuccess}
+            onUploadError={handleUploadError}
+          />
         )}
 
         {analyzing && (
