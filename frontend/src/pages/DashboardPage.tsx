@@ -65,15 +65,6 @@ export default function DashboardPage() {
     return null
   }
 
-  const getConfidenceColor = (confiabilidad: string) => {
-    switch (confiabilidad) {
-      case 'verde': return 'bg-green-500'
-      case 'amarillo': return 'bg-yellow-500'
-      case 'rojo': return 'bg-red-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
   const getConfidenceLabel = (confiabilidad: string) => {
     switch (confiabilidad) {
       case 'verde': return 'Alta'
