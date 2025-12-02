@@ -10,8 +10,40 @@ class FileLoader:
     """Carga archivos espaciales en diferentes formatos"""
     
     def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.format = FormatDetector.detect(file_path)
+        # Normalizar la ruta: convertir a absoluta si es relativa
+        if not os.path.isabs(file_path):
+            # Si es relativa, intentar resolverla desde diferentes ubicaciones
+            # Primero intentar desde el directorio de trabajo actual
+            abs_path = os.path.abspath(file_path)
+            if os.path.exists(abs_path):
+                self.file_path = abs_path
+            else:
+                # Si no existe, intentar desde /app/uploads (Docker)
+                # Remover ./ si está presente
+                clean_path = file_path.lstrip("./")
+                docker_path = os.path.join("/app", clean_path)
+                if os.path.exists(docker_path):
+                    self.file_path = docker_path
+                else:
+                    # Si tampoco existe, intentar desde /app/uploads directamente
+                    filename = os.path.basename(clean_path)
+                    docker_uploads_path = os.path.join("/app", "uploads", filename)
+                    if os.path.exists(docker_uploads_path):
+                        self.file_path = docker_uploads_path
+                    else:
+                        # Usar la ruta absoluta calculada de todas formas
+                        self.file_path = abs_path
+        else:
+            self.file_path = file_path
+        
+        # Verificar que el archivo existe
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"Archivo no encontrado: {self.file_path} (ruta original: {file_path}). "
+                f"Verifica que el archivo existe en el servidor."
+            )
+        
+        self.format = FormatDetector.detect(self.file_path)
         
     def load(self) -> Optional[gpd.GeoDataFrame]:
         """Carga el archivo según su formato"""

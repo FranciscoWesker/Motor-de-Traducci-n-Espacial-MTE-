@@ -56,7 +56,9 @@ async def export_data(
             ).first()
         
         # Crear servicio de exportación
-        export_dir = os.path.join(settings.UPLOAD_DIR, "exports")
+        upload_dir = settings.get_upload_dir()
+        export_dir = os.path.join(upload_dir, "exports")
+        os.makedirs(export_dir, exist_ok=True)
         export_service = ExportService(output_dir=export_dir)
         
         # Crear metadatos

@@ -12,7 +12,8 @@ from pathlib import Path
 router = APIRouter()
 
 # Crear directorio de uploads si no existe
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+upload_dir = settings.get_upload_dir()
+os.makedirs(upload_dir, exist_ok=True)
 
 @router.post("/files/upload", response_model=FileResponse)
 async def upload_file(
@@ -38,8 +39,11 @@ async def upload_file(
             detail=f"Archivo demasiado grande. Tamaño máximo: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
         )
     
-    # Guardar archivo
-    file_path = os.path.join(settings.UPLOAD_DIR, file.filename)
+    # Guardar archivo (usar ruta absoluta)
+    upload_dir = settings.get_upload_dir()
+    file_path = os.path.join(upload_dir, file.filename)
+    # Asegurar que la ruta sea absoluta
+    file_path = os.path.abspath(file_path)
     with open(file_path, "wb") as f:
         f.write(file_content)
     

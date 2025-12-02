@@ -15,6 +15,18 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE: int = 100 * 1024 * 1024  # 100MB
     
+    def get_upload_dir(self) -> str:
+        """Obtiene la ruta absoluta del directorio de uploads"""
+        upload_dir = os.getenv("UPLOAD_DIR", self.UPLOAD_DIR)
+        # Convertir a ruta absoluta
+        if not os.path.isabs(upload_dir):
+            # Si es relativa, convertirla a absoluta basada en el directorio de trabajo actual
+            # En Docker, el WORKDIR es /app, así que ./uploads se convierte en /app/uploads
+            upload_dir = os.path.abspath(upload_dir)
+        # Asegurar que el directorio existe
+        os.makedirs(upload_dir, exist_ok=True)
+        return upload_dir
+    
     # CORS - Se puede sobrescribir con variable de entorno CORS_ORIGINS (separados por comas)
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
     
