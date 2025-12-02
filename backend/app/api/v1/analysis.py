@@ -15,8 +15,20 @@ from app.services.validation.error_calculator import ErrorCalculator
 from app.services.validation.use_case_assessor import UseCaseAssessor
 from app.models.validation_result import ValidationResult
 import json
+import math
 
 router = APIRouter()
+
+def clean_float_value(value: float | None) -> float | None:
+    """
+    Limpia valores float inválidos (nan, inf, -inf) y los convierte a None
+    para que sean JSON-compliant
+    """
+    if value is None:
+        return None
+    if math.isnan(value) or math.isinf(value):
+        return None
+    return value
 
 @router.post("/analysis/{file_id}/diagnose", response_model=AnalysisResponse)
 async def diagnose_file(
@@ -82,15 +94,16 @@ async def diagnose_file(
         use_case_results = use_case_assessor.assess_use_cases(analysis_data)
         
         # Guardar análisis en BD
+        # Limpiar valores float inválidos antes de guardar
         analysis = SpatialAnalysis(
             archivo_id=file_id,
             crs_detectado=crs_results['crs_detectado'],
             crs_original=str(gdf.crs) if gdf.crs else None,
             unidades_detectadas=unit_results['unidades'],
             origen_detectado=origin_results['origen'],
-            escala_estimada=scale_results.get('escala_estimada'),
-            error_planimetrico=error_results.get('error_planimetrico'),
-            error_altimetrico=error_results.get('error_altimetrico'),
+            escala_estimada=clean_float_value(scale_results.get('escala_estimada')),
+            error_planimetrico=clean_float_value(error_results.get('error_planimetrico')),
+            error_altimetrico=clean_float_value(error_results.get('error_altimetrico')),
             confiabilidad=quality_results['confiabilidad']
         )
         db.add(analysis)
@@ -113,9 +126,9 @@ async def diagnose_file(
             crs_original=analysis.crs_original,
             unidades_detectadas=analysis.unidades_detectadas,
             origen_detectado=analysis.origen_detectado,
-            escala_estimada=analysis.escala_estimada,
-            error_planimetrico=analysis.error_planimetrico,
-            error_altimetrico=analysis.error_altimetrico,
+            escala_estimada=clean_float_value(analysis.escala_estimada),
+            error_planimetrico=clean_float_value(analysis.error_planimetrico),
+            error_altimetrico=clean_float_value(analysis.error_altimetrico),
             confiabilidad=analysis.confiabilidad.value,
             fecha_analisis=analysis.fecha_analisis,
             recomendaciones=quality_results['recomendaciones'],
@@ -155,9 +168,9 @@ async def get_analysis(
         crs_original=analysis.crs_original,
         unidades_detectadas=analysis.unidades_detectadas,
         origen_detectado=analysis.origen_detectado,
-        escala_estimada=analysis.escala_estimada,
-        error_planimetrico=analysis.error_planimetrico,
-        error_altimetrico=analysis.error_altimetrico,
+        escala_estimada=clean_float_value(analysis.escala_estimada),
+        error_planimetrico=clean_float_value(analysis.error_planimetrico),
+        error_altimetrico=clean_float_value(analysis.error_altimetrico),
         confiabilidad=analysis.confiabilidad.value,
         fecha_analisis=analysis.fecha_analisis,
         recomendaciones=quality_results['recomendaciones'],
@@ -193,8 +206,9 @@ async def get_preview(
         # Convertir a GeoJSON
         geojson = json.loads(gdf.to_json())
         
-        # Obtener bounds
-        bounds = gdf.total_bounds.tolist()
+        # Obtener bounds y limpiar valores inválidos
+        bounds_raw = gdf.total_bounds.tolist()
+        bounds = [clean_float_value(b) if b is not None else None for b in bounds_raw]
         
         return AnalysisPreview(
             geojson=geojson,
