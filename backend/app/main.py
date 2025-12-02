@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.core.db_health import check_db_connection
+from app.core.db_init import init_db
 from app.api.v1 import files, analysis, export, transformation, layers, stats
 import os
 from pathlib import Path
@@ -40,7 +41,11 @@ async def startup_event():
     # Verificar conexión pero no bloquear el inicio si falla
     # La aplicación puede seguir funcionando para endpoints que no requieren BD
     db_connected = check_db_connection()
-    if not db_connected:
+    if db_connected:
+        # Si hay conexión, inicializar las tablas
+        print("[APP] Inicializando esquema de base de datos...")
+        init_db()
+    else:
         print("[APP] ADVERTENCIA: La aplicacion se inicio sin conexion a base de datos")
         print("[APP] Algunas funcionalidades pueden no estar disponibles")
 
@@ -72,10 +77,12 @@ for path in possible_paths:
         break
 
 if frontend_dist_path:
-    print(f"Frontend encontrado en: {frontend_dist_path}")
+    # Guardar el path en una variable local para que el type checker lo reconozca
+    _frontend_path: Path = frontend_dist_path
+    print(f"Frontend encontrado en: {_frontend_path}")
     
     # Montar archivos estáticos (JS, CSS, imágenes, etc.)
-    static_path = frontend_dist_path / "assets"
+    static_path = _frontend_path / "assets"
     if static_path.exists():
 
         app.mount("/assets", StaticFiles(directory=str(static_path)), name="assets")
@@ -84,7 +91,7 @@ if frontend_dist_path:
     # Servir index.html para la ruta raíz
     @app.get("/")
     async def serve_root():
-        index_path = frontend_dist_path / "index.html"
+        index_path = _frontend_path / "index.html"
         if index_path.exists():
             return FileResponse(str(index_path))
         return {"message": "Motor de Traducción Espacial API", "version": "1.0.0", "frontend": "not found"}
@@ -104,12 +111,12 @@ if frontend_dist_path:
             raise HTTPException(status_code=404, detail="Asset not found")
         
         # Intentar servir archivos estáticos del frontend (favicon.ico, vite.svg, etc.)
-        file_path = frontend_dist_path / full_path
+        file_path = _frontend_path / full_path
         if file_path.exists() and file_path.is_file() and file_path.name != "index.html":
             return FileResponse(str(file_path))
         
         # Para todas las demás rutas (SPA routing), servir index.html
-        index_path = frontend_dist_path / "index.html"
+        index_path = _frontend_path / "index.html"
         if index_path.exists():
             return FileResponse(str(index_path))
         

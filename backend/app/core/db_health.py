@@ -12,9 +12,14 @@ def check_db_connection(max_retries: int = 5, retry_delay: int = 2) -> bool:
     import os
     
     # Verificar si DATABASE_URL está configurada
-    if not os.getenv("DATABASE_URL") and not os.getenv("POSTGRES_URL"):
+    env_db_url = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL") or os.getenv("PGDATABASE_URL")
+    if not env_db_url:
         print("[DB] ADVERTENCIA: DATABASE_URL no está configurada")
         print("[DB] La aplicación puede no funcionar correctamente sin conexión a base de datos")
+        # Verificar si estamos en Railway
+        is_railway = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY_SERVICE_NAME") or os.getenv("RAILWAY_PROJECT_ID"))
+        if is_railway:
+            print("[DB] SOLUCION: En Railway Dashboard, conecta el servicio PostgreSQL al servicio backend")
         return False
     
     for attempt in range(max_retries):

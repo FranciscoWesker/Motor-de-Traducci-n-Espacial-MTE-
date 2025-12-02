@@ -1,7 +1,7 @@
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from alembic import context
+from alembic import context  # type: ignore[reportMissingImports]
 import os
 import sys
 
@@ -10,7 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import Base
 from app.core.config import settings
+# Importar todos los modelos para que Alembic los detecte
 from app.models import Project, DataFile, SpatialAnalysis, ValidationResult
+from app.models.transformation import Transformation
+from app.models.export import Export
 
 # this is the Alembic Config object
 config = context.config
