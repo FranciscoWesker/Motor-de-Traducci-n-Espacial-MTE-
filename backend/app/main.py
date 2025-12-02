@@ -37,7 +37,12 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     print("[APP] Iniciando aplicacion...")
-    check_db_connection()
+    # Verificar conexión pero no bloquear el inicio si falla
+    # La aplicación puede seguir funcionando para endpoints que no requieren BD
+    db_connected = check_db_connection()
+    if not db_connected:
+        print("[APP] ADVERTENCIA: La aplicacion se inicio sin conexion a base de datos")
+        print("[APP] Algunas funcionalidades pueden no estar disponibles")
 
 # Routers
 app.include_router(files.router, prefix="/api/v1", tags=["files"])

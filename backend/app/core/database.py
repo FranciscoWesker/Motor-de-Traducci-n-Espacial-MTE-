@@ -6,7 +6,8 @@ import os
 
 # Obtener DATABASE_URL de variable de entorno o configuración
 # Prioridad: 1. Variable de entorno DATABASE_URL, 2. settings.DATABASE_URL
-env_db_url = os.getenv("DATABASE_URL")
+# Railway y otros servicios cloud proporcionan DATABASE_URL automáticamente
+env_db_url = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL") or os.getenv("PGDATABASE_URL")
 database_url = env_db_url if env_db_url else settings.DATABASE_URL
 
 # Debug: mostrar qué URL estamos usando (sin credenciales)
@@ -19,18 +20,20 @@ if not env_db_url:
     print("[DB] ADVERTENCIA: DATABASE_URL no está configurada como variable de entorno")
     print("[DB] Usando valor por defecto (localhost). Esto puede fallar en producción.")
     # Verificar si estamos en Railway
-    if os.getenv("RAILWAY_ENVIRONMENT"):
+    if os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY_SERVICE_NAME"):
         print("[DB] ADVERTENCIA: Estás en Railway pero DATABASE_URL no está configurada.")
-        print("[DB] Configura DATABASE_URL en las variables de entorno de Railway.")
+        print("[DB] SOLUCION: En Railway, agrega un servicio PostgreSQL y conecta el servicio backend a él.")
+        print("[DB] Railway configurará DATABASE_URL automáticamente cuando conectes los servicios.")
 
 # Convertir postgres:// a postgresql:// (compatibilidad con algunos proveedores)
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 # Detectar si estamos en Docker y ajustar el host si es necesario
+# SOLO si no hay DATABASE_URL de entorno (para desarrollo local con docker-compose)
 # Si DATABASE_URL contiene localhost pero estamos en Docker, cambiar a 'postgres'
 is_docker = False
-if "localhost" in database_url or "127.0.0.1" in database_url:
+if not env_db_url and ("localhost" in database_url or "127.0.0.1" in database_url):
     # Verificar si estamos en un contenedor Docker de varias formas
     docker_indicators = [
         "/proc/1/cgroup",  # Docker/containerd
@@ -49,12 +52,15 @@ if "localhost" in database_url or "127.0.0.1" in database_url:
     if os.getenv("DOCKER_CONTAINER") or os.getenv("container") == "docker":
         is_docker = True
     
-    if is_docker:
-        # Estamos en Docker, cambiar localhost por postgres
+    # NO cambiar si estamos en Railway u otro servicio cloud
+    is_cloud = os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY_SERVICE_NAME") or os.getenv("DYNO")
+    
+    if is_docker and not is_cloud:
+        # Estamos en Docker local (docker-compose), cambiar localhost por postgres
         original_url = database_url
         database_url = database_url.replace("localhost", "postgres").replace("127.0.0.1", "postgres")
         if original_url != database_url:
-            print(f"[DB] Detectado entorno Docker, cambiando host a 'postgres'")
+            print(f"[DB] Detectado entorno Docker local, cambiando host a 'postgres'")
             print(f"[DB] Antes: {original_url.split('@')[1] if '@' in original_url else original_url}")
             print(f"[DB] Ahora: {database_url.split('@')[1] if '@' in database_url else database_url}")
 
