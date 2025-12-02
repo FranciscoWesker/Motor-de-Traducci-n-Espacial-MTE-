@@ -44,7 +44,25 @@ services:
     depends_on:
       - backend
 
+  geoserver:
+    image: oscarfonts/geoserver:latest
+    ports:
+      - "8080:8080"
+    environment:
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: geoserver
+    volumes:
+      - geoserver_data:/var/local/geoserver
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/geoserver/web || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 volumes:
   postgres_data:
   uploads_data:
+  geoserver_data:
 

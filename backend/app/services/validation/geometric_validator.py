@@ -50,7 +50,7 @@ class GeometricValidator:
                     from shapely.validation import explain_validity
                     reason = explain_validity(geom)
                     errors.append(f'Geometría inválida en índice {idx}: {reason}')
-                except:
+                except Exception:
                     errors.append(f'Geometría inválida en índice {idx}')
         
         return errors
@@ -115,7 +115,7 @@ class GeometricValidator:
                     # Si es geográfico, usar una proyección local
                     gdf_projected = self.gdf.to_crs('EPSG:3116')  # Bogotá
                     area = gdf_projected.geometry.area.sum()
-            except:
+            except Exception:
                 pass
         
         return {

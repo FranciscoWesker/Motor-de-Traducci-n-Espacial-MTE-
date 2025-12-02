@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
-from app.api.v1 import files, analysis
+from app.api.v1 import files, analysis, export, transformation, layers
 import os
 from pathlib import Path
 
@@ -35,6 +35,9 @@ app.add_middleware(
 # Routers
 app.include_router(files.router, prefix="/api/v1", tags=["files"])
 app.include_router(analysis.router, prefix="/api/v1", tags=["analysis"])
+app.include_router(export.router, prefix="/api/v1", tags=["export"])
+app.include_router(transformation.router, prefix="/api/v1", tags=["transformation"])
+app.include_router(layers.router, prefix="/api/v1", tags=["layers"])
 
 # Ruta de health check (debe ir antes del catch-all)
 @app.get("/health")

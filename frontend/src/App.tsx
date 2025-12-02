@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import UploadPage from './pages/UploadPage'
 import AnalysisDetailPage from './pages/AnalysisDetailPage'
+import ComparisonPage from './pages/ComparisonPage'
 import './App.css'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Routes>
             <Route path="/" element={<UploadPage />} />
             <Route path="/analysis/:analysisId" element={<AnalysisDetailPage />} />
+            <Route path="/comparison/:analysisId/:transformationId?" element={<ComparisonPage />} />
           </Routes>
         </main>
       </div>

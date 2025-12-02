@@ -27,3 +27,4 @@ class SpatialAnalysis(Base):
     # Relationships
     archivo = relationship("DataFile", back_populates="analisis")
     validaciones = relationship("ValidationResult", back_populates="analisis", cascade="all, delete-orphan")
+    transformations = relationship("Transformation", back_populates="spatial_analysis", cascade="all, delete-orphan")

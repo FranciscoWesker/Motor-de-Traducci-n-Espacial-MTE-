@@ -8,8 +8,12 @@ from app.services.spatial.file_loader import FileLoader
 from app.services.inference.crs_inference import CRSInferenceEngine
 from app.services.inference.unit_detector import UnitDetector
 from app.services.inference.origin_detector import OriginDetector
+from app.services.inference.scale_estimator import ScaleEstimator
 from app.services.validation.geometric_validator import GeometricValidator
 from app.services.validation.quality_assessor import QualityAssessor
+from app.services.validation.error_calculator import ErrorCalculator
+from app.services.validation.use_case_assessor import UseCaseAssessor
+from app.models.validation_result import ValidationResult
 import json
 
 router = APIRouter()
@@ -43,6 +47,17 @@ async def diagnose_file(
         origin_detector = OriginDetector(gdf, crs_results['crs_detectado'])
         origin_results = origin_detector.detect_origin()
         
+        # Estimar escala
+        scale_estimator = ScaleEstimator(gdf)
+        scale_results = scale_estimator.estimate_scale()
+        
+        # Calcular errores
+        error_calculator = ErrorCalculator(gdf)
+        error_results = error_calculator.calculate_errors(
+            crs_detectado=crs_results['crs_detectado'],
+            escala_estimada=scale_results.get('escala_estimada')
+        )
+        
         # Validación geométrica
         validator = GeometricValidator(gdf)
         validation_results = validator.validate()
@@ -53,11 +68,18 @@ async def diagnose_file(
             'crs_confidence': crs_results['confidence'],
             'unidades_detectadas': unit_results['unidades'],
             'origen_detectado': origin_results['origen'],
+            'escala_estimada': scale_results.get('escala_estimada'),
+            'error_planimetrico': error_results.get('error_planimetrico'),
+            'error_altimetrico': error_results.get('error_altimetrico'),
             'validation': validation_results
         }
         
         quality_assessor = QualityAssessor()
         quality_results = quality_assessor.assess(analysis_data)
+        
+        # Evaluar casos de uso
+        use_case_assessor = UseCaseAssessor()
+        use_case_results = use_case_assessor.assess_use_cases(analysis_data)
         
         # Guardar análisis en BD
         analysis = SpatialAnalysis(
@@ -66,10 +88,20 @@ async def diagnose_file(
             crs_original=str(gdf.crs) if gdf.crs else None,
             unidades_detectadas=unit_results['unidades'],
             origen_detectado=origin_results['origen'],
-            escala_estimada=None,  # Se puede calcular después
+            escala_estimada=scale_results.get('escala_estimada'),
+            error_planimetrico=error_results.get('error_planimetrico'),
+            error_altimetrico=error_results.get('error_altimetrico'),
             confiabilidad=quality_results['confiabilidad']
         )
         db.add(analysis)
+        db.flush()  # Para obtener el ID
+        
+        # Guardar resultados de validación por caso de uso
+        validation_results_data = use_case_assessor.create_validation_results(analysis.id, use_case_results)
+        for vr_data in validation_results_data:
+            validation_result = ValidationResult(**vr_data)
+            db.add(validation_result)
+        
         db.commit()
         db.refresh(analysis)
         

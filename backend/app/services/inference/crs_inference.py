@@ -1,6 +1,7 @@
 import geopandas as gpd
 from typing import Optional, Dict, Any
 import numpy as np
+from app.services.inference.boundary_matcher import BoundaryMatcher
 
 class CRSInferenceEngine:
     """Motor de inferencia de CRS basado en reglas geodésicas y heurísticas"""
@@ -58,32 +59,58 @@ class CRSInferenceEngine:
         # Matching con bounding boxes conocidos
         bbox_match = self._match_bounding_box(gdf_wgs84)
         
+        # Matching con límites administrativos (mejora)
+        boundary_matcher = BoundaryMatcher()
+        boundary_match = boundary_matcher.match_boundaries(gdf_wgs84)
+        
         # Inferencia estadística
         stats_inference = self._statistical_inference(gdf_wgs84)
         
-        # Combinar resultados
+        # Combinar resultados con boost de boundary matching
+        base_confidence = 0.0
+        suggested_crs = None
+        method = None
+        explicacion = None
+        
         if bbox_match['match']:
-            results['crs_detectado'] = bbox_match['crs']
-            results['confidence'] = bbox_match['confidence']
-            results['method'] = 'bounding_box_match'
-            results['explicacion'] = bbox_match['explicacion']
+            base_confidence = bbox_match['confidence']
+            suggested_crs = bbox_match['crs']
+            method = 'bounding_box_match'
+            explicacion = bbox_match['explicacion']
         elif stats_inference['confidence'] > 0.7:
-            results['crs_detectado'] = stats_inference['crs']
-            results['confidence'] = stats_inference['confidence']
-            results['method'] = 'statistical_inference'
-            results['explicacion'] = stats_inference['explicacion']
+            base_confidence = stats_inference['confidence']
+            suggested_crs = stats_inference['crs']
+            method = 'statistical_inference'
+            explicacion = stats_inference['explicacion']
         else:
             # CRS por defecto basado en análisis de coordenadas
             if coord_analysis['is_geographic']:
-                results['crs_detectado'] = 'EPSG:4326'
-                results['confidence'] = 0.6
-                results['method'] = 'coordinate_analysis'
-                results['explicacion'] = 'Coordenadas geográficas detectadas, usando WGS84 como referencia'
+                base_confidence = 0.6
+                suggested_crs = 'EPSG:4326'
+                method = 'coordinate_analysis'
+                explicacion = 'Coordenadas geográficas detectadas, usando WGS84 como referencia'
             else:
-                results['crs_detectado'] = None
-                results['confidence'] = 0.3
-                results['method'] = 'insufficient_data'
-                results['explicacion'] = 'No se pudo determinar el CRS con suficiente confianza'
+                base_confidence = 0.3
+                suggested_crs = None
+                method = 'insufficient_data'
+                explicacion = 'No se pudo determinar el CRS con suficiente confianza'
+        
+        # Aplicar boost de boundary matching
+        if boundary_match['matched']:
+            base_confidence += boundary_match['confidence_boost']
+            # Si boundary matching sugiere un CRS específico, usarlo
+            if boundary_match['suggested_crs'] and base_confidence < 0.8:
+                suggested_crs = boundary_match['suggested_crs']
+                method = f"{method}+boundary_match"
+                explicacion = f"{explicacion}. {boundary_match['explicacion']}"
+        
+        # Limitar confianza a 1.0
+        base_confidence = min(1.0, base_confidence)
+        
+        results['crs_detectado'] = suggested_crs
+        results['confidence'] = base_confidence
+        results['method'] = method
+        results['explicacion'] = explicacion
         
         return results
     

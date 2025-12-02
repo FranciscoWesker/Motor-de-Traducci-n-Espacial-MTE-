@@ -4,6 +4,7 @@ import pandas as pd
 from typing import Optional, Dict, Any
 from pathlib import Path
 from app.services.spatial.format_detector import FormatDetector
+from app.services.spatial.raster_reader import RasterReader
 
 class FileLoader:
     """Carga archivos espaciales en diferentes formatos"""
@@ -23,6 +24,8 @@ class FileLoader:
             return self._load_geojson()
         elif self.format == 'CSV':
             return self._load_csv()
+        elif self.format in ['GeoTIFF', 'DEM']:
+            return self._load_raster()
         else:
             raise ValueError(f"Formato {self.format} no implementado aún")
     
@@ -67,5 +70,20 @@ class FileLoader:
         if lon_col and lat_col:
             return (lon_col, lat_col)
         return None
+    
+    def _load_raster(self) -> Optional[gpd.GeoDataFrame]:
+        """Carga archivo raster (GeoTIFF/DEM) y convierte a vector"""
+        raster_reader = RasterReader(self.file_path)
+        
+        # Intentar convertir a vector
+        try:
+            gdf = raster_reader.to_vector()
+            if gdf is not None and len(gdf) > 0:
+                return gdf
+        except Exception:
+            pass
+        
+        # Si no se puede convertir a vector, crear bounding box
+        return raster_reader.get_bounds_gdf()
 
 
