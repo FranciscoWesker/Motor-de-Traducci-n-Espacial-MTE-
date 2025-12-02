@@ -1,10 +1,27 @@
 .confidence-indicator {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.confidence-indicator.high-confidence {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.confidence-indicator.high-confidence .confidence-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.confidence-indicator svg {
+  color: var(--color);
+  animation: checkmark-appear 0.5s ease-out;
 }
 
 .confidence-dot {
@@ -13,9 +30,64 @@
   border-radius: 50%;
   background-color: var(--color);
   box-shadow: 0 0 8px var(--color);
+  transition: all 0.3s ease;
+}
+
+.confidence-indicator.high-confidence .confidence-dot {
+  box-shadow: 0 0 16px var(--color), 0 0 24px rgba(16, 185, 129, 0.4);
 }
 
 .confidence-label {
   font-size: 0.9rem;
   font-weight: 500;
+  color: inherit;
+}
+
+.confidence-indicator.high-confidence .confidence-label {
+  font-weight: 600;
+  color: var(--color);
+}
+
+.confidence-indicator.large {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.confidence-indicator.large .confidence-dot {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes checkmark-appear {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }

@@ -108,3 +108,127 @@
 .recommendations-list li:last-child {
   margin-bottom: 0;
 }
+
+/* Banner de éxito para alta confiabilidad */
+.success-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.5s ease-out;
+}
+
+.success-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.success-banner-content svg {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  animation: checkmark-bounce 0.6s ease-out;
+}
+
+.success-banner-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.success-banner-content p {
+  margin: 0;
+  color: #059669;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Métricas de calidad destacadas */
+.quality-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.quality-metric-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border-left: 3px solid #10b981;
+}
+
+.quality-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.metric-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border-radius: 10px;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes checkmark-bounce {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
