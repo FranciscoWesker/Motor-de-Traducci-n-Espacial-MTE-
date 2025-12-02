@@ -37,6 +37,27 @@ export interface AnalysisPreview {
   bounds: number[]
 }
 
+export interface DashboardStats {
+  total_analyses: number
+  successful_analyses: number
+  success_rate: number
+  average_confidence: number
+  total_files: number
+  recent_analyses: Array<{
+    id: number
+    archivo_nombre: string
+    crs_detectado: string
+    confiabilidad: string
+    fecha_analisis: string | null
+    escala_estimada: number | null
+  }>
+  quality_stats: {
+    alta_confianza: { count: number; percentage: number }
+    media_confianza: { count: number; percentage: number }
+    baja_confianza: { count: number; percentage: number }
+  }
+}
+
 export const uploadFile = async (file: File): Promise<FileUploadResponse> => {
   const formData = new FormData()
   formData.append('file', file)
@@ -62,6 +83,11 @@ export const getAnalysis = async (analysisId: number): Promise<AnalysisResponse>
 
 export const getPreview = async (analysisId: number): Promise<AnalysisPreview> => {
   const response = await api.get<AnalysisPreview>(`/analysis/${analysisId}/preview`)
+  return response.data
+}
+
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  const response = await api.get<DashboardStats>('/stats/dashboard')
   return response.data
 }
 

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
-from app.api.v1 import files, analysis, export, transformation, layers
+from app.api.v1 import files, analysis, export, transformation, layers, stats
 import os
 from pathlib import Path
 
@@ -38,6 +38,7 @@ app.include_router(analysis.router, prefix="/api/v1", tags=["analysis"])
 app.include_router(export.router, prefix="/api/v1", tags=["export"])
 app.include_router(transformation.router, prefix="/api/v1", tags=["transformation"])
 app.include_router(layers.router, prefix="/api/v1", tags=["layers"])
+app.include_router(stats.router, prefix="/api/v1", tags=["stats"])
 
 # Ruta de health check (debe ir antes del catch-all)
 @app.get("/health")
@@ -64,6 +65,7 @@ if frontend_dist_path:
     # Montar archivos estáticos (JS, CSS, imágenes, etc.)
     static_path = frontend_dist_path / "assets"
     if static_path.exists():
+
         app.mount("/assets", StaticFiles(directory=str(static_path)), name="assets")
         print(f"Assets montados en: {static_path}")
     
