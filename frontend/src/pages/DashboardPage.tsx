@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import StatCard from '@/components/common/StatCard'
 import { getDashboardStats, DashboardStats } from '@/services/api'
-import './DashboardPage.css'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -26,17 +25,16 @@ export default function DashboardPage() {
     }
 
     fetchStats()
-    // Actualizar cada 30 segundos
     const interval = setInterval(fetchStats, 30000)
     return () => clearInterval(interval)
   }, [])
 
   if (loading) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-loading">
-          <div className="spinner"></div>
-          <p>Cargando estadísticas...</p>
+      <div className="p-8">
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin"></div>
+          <p className="text-gray-600">Cargando estadísticas...</p>
         </div>
       </div>
     )
@@ -44,13 +42,18 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-error">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-            <path d="M12 8V12M12 16H12.01M21 12C21 16.971 16.971 21 12 21C7.029 21 3 16.971 3 12C3 7.029 7.029 3 12 3C16.971 3 21 7.029 21 12Z" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()} className="retry-button">
+      <div className="p-8">
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <div className="w-12 h-12 text-red-500">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8V12M12 16H12.01M21 12C21 16.971 16.971 21 12 21C7.029 21 3 16.971 3 12C3 7.029 7.029 3 12 3C16.971 3 21 7.029 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <p className="text-gray-700 font-medium">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="btn-primary"
+          >
             Reintentar
           </button>
         </div>
@@ -64,10 +67,10 @@ export default function DashboardPage() {
 
   const getConfidenceColor = (confiabilidad: string) => {
     switch (confiabilidad) {
-      case 'verde': return '#10b981'
-      case 'amarillo': return '#f59e0b'
-      case 'rojo': return '#ef4444'
-      default: return '#6b7280'
+      case 'verde': return 'bg-green-500'
+      case 'amarillo': return 'bg-yellow-500'
+      case 'rojo': return 'bg-red-500'
+      default: return 'bg-gray-500'
     }
   }
 
@@ -81,13 +84,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>Vista general del sistema de análisis espacial</p>
+    <div className="p-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p className="text-gray-600">Vista general del sistema de análisis espacial</p>
       </div>
 
-      <div className="dashboard-stats">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total de Análisis"
           value={stats.total_analyses}
@@ -141,48 +144,52 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="dashboard-content">
-        <div className="dashboard-section">
-          <h2>Análisis Recientes</h2>
-          <div className="recent-analyses">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Análisis Recientes</h2>
+          <div className="min-h-[200px]">
             {stats.recent_analyses.length === 0 ? (
-              <div className="empty-state">
-                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className="opacity-50 mb-4">
                   <path d="M32 8L8 20V44L32 56L56 44V20L32 8Z" stroke="#9ca3af" strokeWidth="2"/>
                   <path d="M32 24L20 30V38L32 44L44 38V30L32 24Z" stroke="#9ca3af" strokeWidth="2"/>
                 </svg>
-                <p>No hay análisis recientes</p>
-                <p className="empty-state-subtitle">Sube un archivo para comenzar</p>
+                <p className="text-gray-600 font-medium">No hay análisis recientes</p>
+                <p className="text-sm text-gray-500 mt-1">Sube un archivo para comenzar</p>
               </div>
             ) : (
-              <div className="recent-analyses-list">
+              <div className="space-y-3">
                 {stats.recent_analyses.map((analysis) => (
                   <div 
                     key={analysis.id} 
-                    className="recent-analysis-item"
+                    className="p-4 border border-gray-200 rounded-lg bg-white hover:border-primary-400 hover:shadow-md transition-all cursor-pointer"
                     onClick={() => navigate(`/analysis/${analysis.id}`)}
                   >
-                    <div className="analysis-item-header">
-                      <h4>{analysis.archivo_nombre}</h4>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-sm font-semibold text-gray-900 truncate flex-1">
+                        {analysis.archivo_nombre}
+                      </h4>
                       <span 
-                        className="confidence-badge"
-                        style={{ 
-                          backgroundColor: getConfidenceColor(analysis.confiabilidad) + '20',
-                          color: getConfidenceColor(analysis.confiabilidad)
-                        }}
+                        className={`px-2 py-1 rounded-md text-xs font-semibold uppercase ml-2 ${
+                          analysis.confiabilidad === 'verde' 
+                            ? 'bg-green-100 text-green-700' 
+                            : analysis.confiabilidad === 'amarillo'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
                       >
                         {getConfidenceLabel(analysis.confiabilidad)}
                       </span>
                     </div>
-                    <div className="analysis-item-details">
-                      <span className="detail-item">
+                    <div className="flex gap-4 flex-wrap text-xs text-gray-600">
+                      <span className="flex items-center gap-1">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                           <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2"/>
                         </svg>
                         {analysis.crs_detectado}
                       </span>
                       {analysis.escala_estimada && (
-                        <span className="detail-item">
+                        <span className="flex items-center gap-1">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2"/>
                           </svg>
@@ -191,7 +198,7 @@ export default function DashboardPage() {
                       )}
                     </div>
                     {analysis.fecha_analisis && (
-                      <div className="analysis-item-date">
+                      <div className="text-xs text-gray-500 mt-2">
                         {new Date(analysis.fecha_analisis).toLocaleDateString('es-ES', {
                           year: 'numeric',
                           month: 'short',
@@ -208,51 +215,51 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="dashboard-section">
-          <h2>Estadísticas de Calidad</h2>
-          <div className="quality-stats">
-            <div className="quality-bar">
-              <div className="quality-bar-label">
+        <div className="card">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Estadísticas de Calidad</h2>
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
                 <span>Alta Confianza</span>
                 <span>{stats.quality_stats.alta_confianza.percentage}%</span>
               </div>
-              <div className="quality-bar-track">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="quality-bar-fill quality-bar-green" 
+                  className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
                   style={{ width: `${stats.quality_stats.alta_confianza.percentage}%` }}
                 ></div>
               </div>
-              <div className="quality-bar-count">
+              <div className="text-xs text-gray-500 mt-1">
                 {stats.quality_stats.alta_confianza.count} análisis
               </div>
             </div>
-            <div className="quality-bar">
-              <div className="quality-bar-label">
+            <div>
+              <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
                 <span>Confianza Media</span>
                 <span>{stats.quality_stats.media_confianza.percentage}%</span>
               </div>
-              <div className="quality-bar-track">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="quality-bar-fill quality-bar-yellow" 
+                  className="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 transition-all duration-500"
                   style={{ width: `${stats.quality_stats.media_confianza.percentage}%` }}
                 ></div>
               </div>
-              <div className="quality-bar-count">
+              <div className="text-xs text-gray-500 mt-1">
                 {stats.quality_stats.media_confianza.count} análisis
               </div>
             </div>
-            <div className="quality-bar">
-              <div className="quality-bar-label">
+            <div>
+              <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2">
                 <span>Baja Confianza</span>
                 <span>{stats.quality_stats.baja_confianza.percentage}%</span>
               </div>
-              <div className="quality-bar-track">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="quality-bar-fill quality-bar-red" 
+                  className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-500"
                   style={{ width: `${stats.quality_stats.baja_confianza.percentage}%` }}
                 ></div>
               </div>
-              <div className="quality-bar-count">
+              <div className="text-xs text-gray-500 mt-1">
                 {stats.quality_stats.baja_confianza.count} análisis
               </div>
             </div>
@@ -262,4 +269,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-

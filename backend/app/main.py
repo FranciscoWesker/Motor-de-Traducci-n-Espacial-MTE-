@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import settings
+from app.core.db_health import check_db_connection
 from app.api.v1 import files, analysis, export, transformation, layers, stats
 import os
 from pathlib import Path
@@ -31,6 +32,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Verificar conexión a base de datos al iniciar
+@app.on_event("startup")
+async def startup_event():
+    print("[APP] Iniciando aplicacion...")
+    check_db_connection()
 
 # Routers
 app.include_router(files.router, prefix="/api/v1", tags=["files"])

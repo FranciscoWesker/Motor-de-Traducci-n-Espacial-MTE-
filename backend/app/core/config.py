@@ -4,7 +4,12 @@ import os
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/mte_db"
+    # Por defecto usa localhost para desarrollo local
+    # En Docker, debe sobrescribirse con DATABASE_URL=postgresql://postgres:postgres@postgres:5432/mte_db
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", 
+        "postgresql://postgres:postgres@localhost:5432/mte_db"
+    )
     
     # File storage
     UPLOAD_DIR: str = "./uploads"
