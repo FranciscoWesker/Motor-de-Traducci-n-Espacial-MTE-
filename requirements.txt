@@ -14,6 +14,7 @@ geoalchemy2==0.14.2
 # Las variables de entorno PROJ_DIR, PROJ_LIB y GDAL_CONFIG están configuradas en el Dockerfile
 # NumPy 1.x requerido: Shapely 2.0.2 y GeoPandas 0.14.1 fueron compilados con NumPy 1.x
 numpy<2.0
+gdal==3.7.3
 shapely==2.0.2
 pyproj==3.6.1
 geopandas==0.14.1
@@ -24,3 +25,10 @@ fiona==1.9.5
 pydantic==2.5.0
 pydantic-settings==2.1.0
 python-dotenv==1.0.0
+requests==2.31.0
+joblib==1.3.2
+
+# Validación y testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
