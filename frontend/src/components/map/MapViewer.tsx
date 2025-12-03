@@ -13,8 +13,31 @@ export default function MapViewer({ geojson, bounds }: MapViewerProps) {
   const map = useRef<maplibregl.Map | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
 
+  const hasValidBounds = (b?: number[]) => {
+    if (!b || b.length !== 4) return false
+    const [minX, minY, maxX, maxY] = b
+    const values = [minX, minY, maxX, maxY]
+    if (values.some((v) => typeof v !== 'number' || !Number.isFinite(v))) return false
+    // MapLibre espera [lng, lat] en grados
+    const lats = [minY, maxY]
+    const lngs = [minX, maxX]
+    if (lats.some((lat) => lat < -90 || lat > 90)) return false
+    if (lngs.some((lng) => lng < -180 || lng > 180)) return false
+    return true
+  }
+
+  const defaultCenter: [number, number] = [-74.0, 4.6]
+
   useEffect(() => {
     if (!mapContainer.current || map.current) return
+
+    const useBounds = hasValidBounds(bounds)
+    const center: [number, number] = useBounds
+      ? [
+          (bounds![0] + bounds![2]) / 2,
+          (bounds![1] + bounds![3]) / 2,
+        ]
+      : defaultCenter
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
@@ -40,8 +63,8 @@ export default function MapViewer({ geojson, bounds }: MapViewerProps) {
           }
         ]
       },
-      center: bounds ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2] : [-74.0, 4.6],
-      zoom: bounds ? 10 : 5
+      center,
+      zoom: useBounds ? 10 : 5
     })
 
     map.current.on('load', () => {
@@ -87,9 +110,13 @@ export default function MapViewer({ geojson, bounds }: MapViewerProps) {
     }
 
     // Ajustar vista a los bounds
-    if (bounds && bounds.length === 4) {
+    if (hasValidBounds(bounds)) {
+      const [minX, minY, maxX, maxY] = bounds as [number, number, number, number]
       map.current.fitBounds(
-        [[bounds[0], bounds[1]], [bounds[2], bounds[3]]],
+        [
+          [minX, minY],
+          [maxX, maxY],
+        ],
         { padding: 50, duration: 1000 }
       )
     }
