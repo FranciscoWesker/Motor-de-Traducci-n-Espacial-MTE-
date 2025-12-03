@@ -5,6 +5,7 @@ import UploadPage from './pages/UploadPage'
 import AnalysisDetailPage from './pages/AnalysisDetailPage'
 import ComparisonPage from './pages/ComparisonPage'
 import DashboardPage from './pages/DashboardPage'
+import AnalysesPage from './pages/AnalysesPage'
 import './App.css'
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/upload" element={<UploadPage />} />
-              <Route path="/analyses" element={<DashboardPage />} />
+              <Route path="/analyses" element={<AnalysesPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/analysis/:analysisId" element={<AnalysisDetailPage />} />
               <Route path="/comparison/:analysisId/:transformationId?" element={<ComparisonPage />} />

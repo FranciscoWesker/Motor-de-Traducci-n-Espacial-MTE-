@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.data_file import DataFile
 from app.models.spatial_analysis import SpatialAnalysis
-from app.schemas.analysis import AnalysisRequest, AnalysisResponse, AnalysisPreview
+from app.schemas.analysis import AnalysisRequest, AnalysisResponse, AnalysisPreview, AnalysisListResponse, AnalysisListItem
 from app.services.spatial.file_loader import FileLoader
 from app.services.inference.crs_inference import CRSInferenceEngine
 from app.services.inference.unit_detector import UnitDetector
@@ -46,6 +47,9 @@ async def diagnose_file(
         # Cargar archivo
         loader = FileLoader(file.ruta_almacenamiento)
         gdf = loader.load()
+        
+        if gdf is None:
+            raise HTTPException(status_code=500, detail="Error: No se pudo cargar el archivo")
         
         # Detectar CRS
         crs_engine = CRSInferenceEngine(gdf)
@@ -140,6 +144,50 @@ async def diagnose_file(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en análisis: {str(e)}")
 
+@router.get("/analyses", response_model=AnalysisListResponse)
+async def list_analyses(
+    skip: int = 0,
+    limit: int = 50,
+    confiabilidad: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Lista todos los análisis con paginación y filtros opcionales"""
+    from app.models.spatial_analysis import ConfiabilidadEnum
+    
+    query = db.query(SpatialAnalysis)
+    
+    # Filtrar por confiabilidad si se proporciona
+    if confiabilidad:
+        try:
+            confiabilidad_enum = ConfiabilidadEnum(confiabilidad.lower())
+            query = query.filter(SpatialAnalysis.confiabilidad == confiabilidad_enum)
+        except ValueError:
+            pass  # Si el valor no es válido, ignorar el filtro
+    
+    # Obtener total antes de paginar
+    total = query.count()
+    
+    # Aplicar paginación y ordenar por fecha descendente
+    analyses = query.order_by(
+        SpatialAnalysis.fecha_analisis.desc()
+    ).offset(skip).limit(limit).all()
+    
+    # Construir respuesta con información del archivo
+    items = []
+    for analysis in analyses:
+        file = db.query(DataFile).filter(DataFile.id == analysis.archivo_id).first()
+        items.append(AnalysisListItem(
+            id=analysis.id,
+            archivo_id=analysis.archivo_id,
+            archivo_nombre=file.nombre_archivo if file else 'Desconocido',
+            crs_detectado=analysis.crs_detectado,
+            confiabilidad=analysis.confiabilidad.value if hasattr(analysis.confiabilidad, 'value') else str(analysis.confiabilidad),
+            fecha_analisis=analysis.fecha_analisis,
+            escala_estimada=clean_float_value(analysis.escala_estimada)
+        ))
+    
+    return AnalysisListResponse(total=total, items=items)
+
 @router.get("/analysis/{analysis_id}", response_model=AnalysisResponse)
 async def get_analysis(
     analysis_id: int,
@@ -196,6 +244,9 @@ async def get_preview(
         loader = FileLoader(file.ruta_almacenamiento)
         gdf = loader.load()
         
+        if gdf is None:
+            raise HTTPException(status_code=500, detail="Error: No se pudo cargar el archivo para preview")
+        
         # Aplicar CRS detectado si existe
         if analysis.crs_detectado:
             try:
@@ -210,9 +261,12 @@ async def get_preview(
         bounds_raw = gdf.total_bounds.tolist()
         bounds = [clean_float_value(b) if b is not None else None for b in bounds_raw]
         
+        # Obtener CRS aplicado de forma segura
+        crs_aplicado = analysis.crs_detectado or (str(gdf.crs) if gdf.crs else None) or "unknown"
+        
         return AnalysisPreview(
             geojson=geojson,
-            crs_aplicado=analysis.crs_detectado or str(gdf.crs) or "unknown",
+            crs_aplicado=crs_aplicado,
             bounds=bounds
         )
         

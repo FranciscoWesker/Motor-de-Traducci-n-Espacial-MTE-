@@ -28,3 +28,19 @@ class AnalysisPreview(BaseModel):
     geojson: Dict[str, Any]
     crs_aplicado: str
     bounds: List[float]
+
+class AnalysisListItem(BaseModel):
+    id: int
+    archivo_id: int
+    archivo_nombre: str
+    crs_detectado: Optional[str] = None
+    confiabilidad: str
+    fecha_analisis: datetime
+    escala_estimada: Optional[float] = None
+    
+    class Config:
+        from_attributes = True
+
+class AnalysisListResponse(BaseModel):
+    total: int
+    items: List[AnalysisListItem]

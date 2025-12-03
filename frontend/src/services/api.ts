@@ -58,6 +58,21 @@ export interface DashboardStats {
   }
 }
 
+export interface AnalysisListItem {
+  id: number
+  archivo_id: number
+  archivo_nombre: string
+  crs_detectado: string | null
+  confiabilidad: string
+  fecha_analisis: string
+  escala_estimada: number | null
+}
+
+export interface AnalysisListResponse {
+  total: number
+  items: AnalysisListItem[]
+}
+
 export const uploadFile = async (file: File): Promise<FileUploadResponse> => {
   const formData = new FormData()
   formData.append('file', file)
@@ -88,6 +103,19 @@ export const getPreview = async (analysisId: number): Promise<AnalysisPreview> =
 
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   const response = await api.get<DashboardStats>('/stats/dashboard')
+  return response.data
+}
+
+export const listAnalyses = async (
+  skip: number = 0,
+  limit: number = 50,
+  confiabilidad?: string
+): Promise<AnalysisListResponse> => {
+  const params: any = { skip, limit }
+  if (confiabilidad) {
+    params.confiabilidad = confiabilidad
+  }
+  const response = await api.get<AnalysisListResponse>('/analyses', { params })
   return response.data
 }
 
